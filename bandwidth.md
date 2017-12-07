@@ -10,7 +10,8 @@ O arquivo XML que contém uma lista de itens - podcasts - é baixado assim que o
 
 Abaixo segue uma imagem do consumo de banda da aplicação, cada pico do gráfico significa o aplicativo sendo iniciado pelo usuario e realizando o download do feed:
 
-![download_feed](https://photos-5.dropbox.com/t/2/AAAYtkGN1v7RCvfhShJ8-OU7axl8c9K85TK3I-K8QQXzyQ/12/306453048/png/32x32/1/_/1/2/sem_checagem.PNG/EN6206wCGJwrIAIoAg/_m5E6vR0_vtS5rxrCABo-I-M8pbYl08ZsoGym9RDQbo?preserve_transparency=1&size=800x600&size_mode=3)
+![Imagem 1](https://photos-5.dropbox.com/t/2/AAAYtkGN1v7RCvfhShJ8-OU7axl8c9K85TK3I-K8QQXzyQ/12/306453048/png/32x32/1/_/1/2/sem_checagem.PNG/EN6206wCGJwrIAIoAg/_m5E6vR0_vtS5rxrCABo-I-M8pbYl08ZsoGym9RDQbo?preserve_transparency=1&size=800x600&size_mode=3)
+
 É notável que o tempo de download é muito curto e a banda consumida também é pequena, mas em questões de internet móvel, qualquer consumo deve ser levado em consideração. Para um usuário que costuma usar bastante o aplicativo, e de tempos em tempos mantem o ciclo de abrir e fechar o aplicativo, esse pequeno consumo se torna cumulativo.
 
 #### Melhorando o download do feed
@@ -62,13 +63,13 @@ Como os comentários do código deixam claro, caso seja a primeira vez que o apl
 
 Com essa modificação o aplicativo retornou o seguinte resultado:
 
-![download_feed](https://photos-1.dropbox.com/t/2/AAAcBy4293glIe1ZDxnhSZhCiBekt0xQf41Ue6_CaMCx7g/12/306453048/png/32x32/1/_/1/2/com_checagem.PNG/EN6206wCGJwrIAIoAg/RQQNwIqqUv3FNC4hPPwchqalXFQH0kDdSmDilD8wd0g?preserve_transparency=1&size=800x600&size_mode=3)
+![Imagem 2](https://photos-1.dropbox.com/t/2/AAAcBy4293glIe1ZDxnhSZhCiBekt0xQf41Ue6_CaMCx7g/12/306453048/png/32x32/1/_/1/2/com_checagem.PNG/EN6206wCGJwrIAIoAg/RQQNwIqqUv3FNC4hPPwchqalXFQH0kDdSmDilD8wd0g?preserve_transparency=1&size=800x600&size_mode=3)
 
 O primerio pico é a primeira inicialização do aplicativo, onde não tem nada salvo ainda nas preferencias compartilhadas, assim é feito o download do feed. E é possível perceber algumas nuances após 14s, onde é o mesmo comportamento da primeira imagem: o aplicativo sendo fechado e iniciado, 3 vezes nesse caso.
 
 Para ficar melhor a visualização das nuances mencionadas anteriormente, a imagem abaixo traz esse comportamento. É notável pela escala do gráfico a diferença, antes os 3 picos chegavam perto de 126KB/s, agora ficam perto de 2KB/s.
 
-![download_feed](https://photos-2.dropbox.com/t/2/AAAdrDID5GJqqyb4O_LNlAZ5ToI9SJ2cfHpunAJXTXzjRw/12/306453048/png/32x32/1/_/1/2/com_checagem2.PNG/EN6206wCGJ0rIAIoAg/4-ltP_anXZGRTYnokLPL0UJwlqRpvLqmxH2DXLhKxSE?preserve_transparency=1&size=800x600&size_mode=3)
+![Imagem 3](https://photos-2.dropbox.com/t/2/AAAdrDID5GJqqyb4O_LNlAZ5ToI9SJ2cfHpunAJXTXzjRw/12/306453048/png/32x32/1/_/1/2/com_checagem2.PNG/EN6206wCGJ0rIAIoAg/4-ltP_anXZGRTYnokLPL0UJwlqRpvLqmxH2DXLhKxSE?preserve_transparency=1&size=800x600&size_mode=3)
 
 ### Baixando o Podcast
 Fica disponível ao usuário o download do episódio de Podcast, caso ele tenha interesse, e após o download estar completo, o mesmo é armazenado no dispositivo para que não seja necessário realizar o download novamente do mesmo episódio.
