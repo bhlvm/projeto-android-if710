@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -18,6 +19,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -25,12 +27,21 @@ import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
@@ -47,6 +58,7 @@ public class MainActivity extends Activity {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
+    private static String FEED_LAST_MODIFIED = "LAST_MODIFIED";
     //TODO teste com outros links de podcast
     PodcastDBHelper db;
     AsyncTask t = null;
@@ -165,7 +177,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected List<ItemFeed> doInBackground(String... params) {
-            List<ItemFeed> itemList = new ArrayList<>();
+            List<ItemFeed> itemList;
 
             ConnectivityManager cm =  (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -176,14 +188,16 @@ public class MainActivity extends Activity {
             //VERIFICA SE TEM INTERNET
             if( isConnected){
                 try {
-                   itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-                   persistirDados(itemList);
+                    boolean b = ifModified(params[0]);
+                    if(b) {
+                        itemList = XmlFeedParser.parse(getRssFeed(params[0]));
+                        persistirDados(itemList);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }
-
             }
             //BUSCA OS DADOS PERSISTIDOS
             itemList = getDados();
@@ -357,7 +371,7 @@ public class MainActivity extends Activity {
     //TODO Opcional - pesquise outros meios de obter arquivos da internet
     private String getRssFeed(String feed) throws IOException {
         InputStream in = null;
-        String rssFeed = "";
+        String rssFeed;
         try {
             URL url = new URL(feed);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -375,5 +389,36 @@ public class MainActivity extends Activity {
             }
         }
         return rssFeed;
+    }
+
+    private boolean ifModified(String feed) {
+        try {
+            URL url = new URL(feed);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            SharedPreferences prefs = getPreferences(0);
+            String last_modified = prefs.getString(FEED_LAST_MODIFIED, "");
+
+            if (!last_modified.isEmpty()) {
+                conn.setRequestProperty("If-Modified-Since", last_modified);
+                if (conn.getResponseCode() == 304) { // NOT MODIFIED
+                    return false;
+                } else {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString(FEED_LAST_MODIFIED, conn.getHeaderField("Last-Modified"));
+                    editor.commit();
+                }
+            } else {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(FEED_LAST_MODIFIED, conn.getHeaderField("Last-Modified"));
+                editor.commit();
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
     }
 }
