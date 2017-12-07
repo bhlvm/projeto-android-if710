@@ -2,6 +2,10 @@ package br.ufpe.cin.if710.podcast.aplication;
 
 import android.app.Application;
 
+import com.frogermcs.androiddevmetrics.AndroidDevMetrics;
+import com.squareup.leakcanary.LeakCanary;
+
+import br.ufpe.cin.if710.podcast.BuildConfig;
 import br.ufpe.cin.if710.podcast.service.MusicPlayer;
 
 /**
@@ -15,6 +19,22 @@ public class MyApplication extends Application {
     private static boolean isInForeground;
     private static  boolean bound;
     private static MusicPlayer musicPlayer;
+
+    @Override public void onCreate() {
+        super.onCreate();
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+            return;
+        }
+
+        if (BuildConfig.DEBUG) {
+            AndroidDevMetrics.initWith(this);
+        }
+        LeakCanary.install(this);
+        // Normal app init code...
+    }
+
 
     public static boolean isActivityVisible() {
         return isInForeground;
