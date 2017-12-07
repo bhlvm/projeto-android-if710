@@ -8,6 +8,7 @@ public class ItemFeed {
     private final String pubDate;
     private final String description;
     private final String downloadLink;
+    private String stauts;
     private  String fileUri;
 
 
@@ -18,6 +19,7 @@ public class ItemFeed {
         this.description = description;
         this.downloadLink = downloadLink;
         this.fileUri = fileUri;
+        this.stauts = "baixar";
     }
 
     public String getTitle() {
@@ -41,6 +43,10 @@ public class ItemFeed {
     }
 
     public String getFileUri() {return fileUri;}
+
+    public String getStatus() {return stauts;}
+
+    public void setStauts(String status) {this.stauts = status;};
 
     @Override
     public String toString() {

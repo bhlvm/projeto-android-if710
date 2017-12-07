@@ -103,9 +103,11 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         }
 
 
+        holder.btn_Download.setText(item.getStatus());
 
-        if(!item.getFileUri().isEmpty()){
+        if(!item.getFileUri().isEmpty() && (item.getStatus().equals("baixar")||item.getStatus().equals("baixando"))){
             holder.btn_Download.setText("play");
+            item.setStauts("play");
         }
 
 
@@ -144,6 +146,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                     context.startService(downloadService);
                     System.out.println("Baixar");
                     holder.btn_Download.setText("baixando");
+                    item.setStauts("baixando");
 
 
                 }else if(holder.btn_Download.getText().equals("play")){
@@ -155,6 +158,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
                     System.out.println("escuta1r");
                     holder.btn_Download.setText("pause");
+                    item.setStauts("pause");
 
                 } else  if(holder.btn_Download.getText().toString().equals("pause")){
 
@@ -163,7 +167,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                     }
 
                     holder.btn_Download.setText("unPause");
-
+                    item.setStauts("unPause");
                 }else if(holder.btn_Download.getText().equals("unPause")){
 
 
@@ -173,7 +177,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
                     System.out.println("escuta1r");
                     holder.btn_Download.setText("pause");
-
+                    item.setStauts("pause");
                 }
 
 

@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
         db = PodcastDBHelper.getInstance(this);
         itens = (ListView) findViewById(R.id.items);
         checkPermissions(this);
+        new startServiceMusicTask().execute();
     }
 
     @Override
@@ -93,7 +94,7 @@ public class MainActivity extends Activity {
         super.onStart();
         new DownloadXmlTask().execute(RSS_FEED);
 
-        new startServiceMusicTask().execute();
+
     }
 
     @Override
@@ -112,9 +113,17 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        super.onPause();
+
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(onDownloadCompleteEvent);
         MyApplication.activityPaused();
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy(){
+
+        super.onDestroy();
     }
 
     private ServiceConnection sConn = new ServiceConnection(){
@@ -141,7 +150,7 @@ public class MainActivity extends Activity {
 
             XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, itemList);
             System.out.println("Primeiro plano");
-                //atualizar o list view
+            //atualizar o list view
             itens.setAdapter(adapter);
             itens.deferNotifyDataSetChanged();
         }
@@ -176,8 +185,8 @@ public class MainActivity extends Activity {
             //VERIFICA SE TEM INTERNET
             if( isConnected){
                 try {
-                   itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-                   persistirDados(itemList);
+                    itemList = XmlFeedParser.parse(getRssFeed(params[0]));
+                    persistirDados(itemList);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -294,8 +303,8 @@ public class MainActivity extends Activity {
                     cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_DOWNLOAD_LINK)),
                     cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_FILE_URI)));
 
-           itens.add(itemFeed);
-           cursor.moveToNext();
+            itens.add(itemFeed);
+            cursor.moveToNext();
 
         };
 
