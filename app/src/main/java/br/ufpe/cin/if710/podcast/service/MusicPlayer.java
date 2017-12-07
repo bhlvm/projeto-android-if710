@@ -26,18 +26,10 @@ public class MusicPlayer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-
-
-
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-
-
         return START_STICKY;
     }
 
@@ -52,8 +44,15 @@ public class MusicPlayer extends Service {
     public void playMusic(String url) {
         Uri uri =  Uri.parse(url);
 
+        if(mPlayer ==null){
+            mPlayer = MediaPlayer.create(this, uri);
+        }else{
+            mPlayer.stop();
+            mPlayer.release();
+            mPlayer = MediaPlayer.create(this, uri);
+        }
         // configurar media player
-        mPlayer = MediaPlayer.create(this, uri);
+
 
         if (null != mPlayer) {
             //fica em loop
