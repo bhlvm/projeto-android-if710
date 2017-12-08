@@ -10,7 +10,20 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
     }
+
+    sourceSets {
+        androidTest.assets.srcDirs +=
+                files("$projectDir/schemas".toString())
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -27,7 +40,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:support-v4:26.0.0-alpha1'
+
 
     testCompile 'junit:junit:4.12'
 
@@ -41,5 +54,9 @@ dependencies {
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
 
     apply plugin: 'com.android.application'
-    apply plugin: 'com.frogermcs.androiddevmetrics'
+
+
+    implementation "android.arch.persistence.room:runtime:$rootProject.roomVersion"
+    annotationProcessor "android.arch.persistence.room:compiler:$rootProject.roomVersion"
+    androidTestImplementation "android.arch.persistence.room:testing:$rootProject.roomVersion"
 }

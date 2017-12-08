@@ -1,14 +1,30 @@
 package br.ufpe.cin.if710.podcast.domain;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
 import java.util.Objects;
 
+@Entity(tableName = "itens")
 public class ItemFeed {
+
+    @ColumnInfo(name = "title")
     private final String title;
+    @ColumnInfo(name = "link")
     private final String link;
+    @ColumnInfo(name = "pubDate")
     private final String pubDate;
+    @ColumnInfo(name = "description")
     private final String description;
+
+    @PrimaryKey @NonNull
+    @ColumnInfo(name = "downloadLink")
     private final String downloadLink;
-    private String stauts;
+    @ColumnInfo(name = "status")
+    private String status;
+    @ColumnInfo(name = "fileUri")
     private  String fileUri;
 
 
@@ -19,7 +35,7 @@ public class ItemFeed {
         this.description = description;
         this.downloadLink = downloadLink;
         this.fileUri = fileUri;
-        this.stauts = "baixar";
+        this.status = "baixar";
     }
 
     public String getTitle() {
@@ -44,9 +60,11 @@ public class ItemFeed {
 
     public String getFileUri() {return fileUri;}
 
-    public String getStatus() {return stauts;}
+    public String getStatus() {return status;}
 
-    public void setStauts(String status) {this.stauts = status;};
+    public void setStatus(String status) {this.status = status;};
+
+    public void setFileUri(String fileUri) {this.fileUri = fileUri;};
 
     @Override
     public String toString() {

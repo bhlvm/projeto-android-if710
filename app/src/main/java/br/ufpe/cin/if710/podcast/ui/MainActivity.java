@@ -27,13 +27,7 @@ import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -47,7 +41,6 @@ import java.util.List;
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.aplication.MyApplication;
 import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
-import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.service.DownloadService;
@@ -61,7 +54,6 @@ public class MainActivity extends Activity {
     private static String FEED_LAST_MODIFIED = "LAST_MODIFIED";
     //TODO teste com outros links de podcast
     PodcastDBHelper db;
-    AsyncTask t = null;
     private ListView itens;
 
 
@@ -77,12 +69,15 @@ public class MainActivity extends Activity {
         itens = (ListView) findViewById(R.id.items);
         checkPermissions(this);
         new startServiceMusicTask().execute();
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+
 
         return true;
     }
@@ -158,13 +153,7 @@ public class MainActivity extends Activity {
 
             Toast.makeText(context, "Download Concluido", Toast.LENGTH_LONG).show();
 
-            List<ItemFeed> itemList = getDados();
-
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, itemList);
-            System.out.println("Primeiro plano");
-            //atualizar o list view
-            itens.setAdapter(adapter);
-            itens.deferNotifyDataSetChanged();
+            new OnDownloadCompleteTask().execute(RSS_FEED);
         }
     };
 
@@ -178,10 +167,44 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class OnDownloadCompleteTask extends AsyncTask<String, Void, List<ItemFeed>>{
+
+        @Override
+        protected  List<ItemFeed> doInBackground(String... strings) {
+            List<ItemFeed> itemList = MyApplication.database.itemDao().getItens();
+
+            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, itemList);
+            System.out.println("Primeiro plano");
+
+
+            for (ItemFeed i: itemList) {
+                Log.d(null, i.getFileUri());
+            }
+
+            return itemList;
+        }
+
+
+        @Override
+        protected void onPostExecute(List<ItemFeed> feed) {
+
+            //Adapter Personalizado
+            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+
+            //atualizar o list view
+            itens.setAdapter(adapter);
+            itens.setTextFilterEnabled(true);
+            // t = new LoadCursorTask().execute();
+
+        }
+    }
+
     private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
         @Override
         protected void onPreExecute() {
             Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(getApplicationContext(), "LOL...", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -209,7 +232,7 @@ public class MainActivity extends Activity {
                 }
             }
             //BUSCA OS DADOS PERSISTIDOS
-            itemList = getDados();
+            itemList = MyApplication.database.itemDao().getItens();
 
             return itemList;
         }
@@ -217,37 +240,15 @@ public class MainActivity extends Activity {
 
 
         protected   void persistirDados (List<ItemFeed> itemList){
-            //BUSCA OS DADOS JA CADASTRADOS
-            Cursor result = db.getReadableDatabase()
-                    .query(PodcastDBHelper.DATABASE_TABLE,
-                            PodcastDBHelper.columns,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null);
 
-            List<ItemFeed> itensSalvos = new ArrayList<>();
-            if(result != null){
-                itensSalvos   = cursorToList(result);
-            }
-
+            List<ItemFeed> itensSalvos = MyApplication.database.itemDao().getItens();
             //ADICIONA SOMENTE ITENS QUE NÃO FORAM PREVIAMENTE CADASTRADOS
             for (ItemFeed item : itemList) {
 
                 if(!itensSalvos.contains(item)){
                     itensSalvos.add(item);
 
-                    ContentValues cv = new ContentValues();
-
-                    cv.put(PodcastDBHelper.EPISODE_TITLE, item.getTitle());
-                    cv.put(PodcastDBHelper.EPISODE_LINK, item.getLink());
-                    cv.put(PodcastDBHelper.EPISODE_DATE, item.getPubDate());
-                    cv.put(PodcastDBHelper.EPISODE_DESC, item.getDescription());
-                    cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
-                    cv.put(PodcastDBHelper.EPISODE_FILE_URI,"");
-
-                    getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI,cv);
+                    MyApplication.database.itemDao().insertItem(item);
                 }
             }
         }
@@ -263,15 +264,12 @@ public class MainActivity extends Activity {
             //atualizar o list view
             itens.setAdapter(adapter);
             itens.setTextFilterEnabled(true);
-            t = new LoadCursorTask().execute();
-
         }
     }
 
 
 
     private class startServiceMusicTask extends AsyncTask<String, Void, Boolean> {
-
 
         @Override
         protected Boolean doInBackground(String... strings) {
@@ -286,98 +284,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    protected  List<ItemFeed> getDados(){
-        Cursor cursor = db.getReadableDatabase()
-                .query(PodcastDBHelper.DATABASE_TABLE,
-                        PodcastDBHelper.columns,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null);
-        List<ItemFeed> itens =  cursorToList(cursor);
-
-        return itens;
-
-    }
-
-
-    private  List<ItemFeed> cursorToList(Cursor cursor){
-
-        List<ItemFeed> itens = new ArrayList<>();
-        ItemFeed itemFeed;
-        cursor.moveToFirst();
-
-        //Navega no cursor, criando objetos do tipo itemFeed
-        while (!cursor.isAfterLast()){
-            itemFeed= new ItemFeed (cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_TITLE)),
-                    cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_LINK)),
-                    cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_DATE)),
-                    cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_DESC)),
-                    cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_DOWNLOAD_LINK)),
-                    cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_FILE_URI)));
-
-            itens.add(itemFeed);
-            cursor.moveToNext();
-
-        };
-
-        return itens;
-    }
-
-
-    private class LoadCursorTask extends BaseTask<Void> {
-        @Override
-        protected Cursor doInBackground(Void... params) {
-            Cursor result=
-                    db.getReadableDatabase()
-                            .query(PodcastDBHelper.DATABASE_TABLE,
-                                    PodcastDBHelper.columns,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null);
-
-            result.getCount();
-
-            return result;
-        }
-    }
-
-
-
-
-
-
-    private abstract class BaseTask<T> extends AsyncTask<T, Void, Cursor> {
-        Cursor doQuery() {
-            Cursor result=
-                    db.getReadableDatabase()
-                            .query(PodcastDBHelper.DATABASE_TABLE,
-                                    PodcastDBHelper.columns,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null);
-
-            //força a query a ser executada
-            //so executa quando fazemos algo que precisa do resultset
-            result.getCount();
-
-            System.out.println("CURSOR");
-            System.out.println( result.getCount());
-
-            return result;
-        }
-
-        @Override
-        public void onPostExecute(Cursor result) {
-        }
-    }
-
-    //TODO Opcional - pesquise outros meios de obter arquivos da internet
+     //TODO Opcional - pesquise outros meios de obter arquivos da internet
     private String getRssFeed(String feed) throws IOException {
         InputStream in = null;
         String rssFeed;

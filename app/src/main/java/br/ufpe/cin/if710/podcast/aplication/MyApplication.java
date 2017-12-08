@@ -1,11 +1,13 @@
 package br.ufpe.cin.if710.podcast.aplication;
 
 import android.app.Application;
+import android.arch.persistence.room.Room;
 
-import com.frogermcs.androiddevmetrics.AndroidDevMetrics;
+
 import com.squareup.leakcanary.LeakCanary;
 
 import br.ufpe.cin.if710.podcast.BuildConfig;
+import br.ufpe.cin.if710.podcast.db.ItemFeedDatabase;
 import br.ufpe.cin.if710.podcast.service.MusicPlayer;
 
 /**
@@ -19,7 +21,7 @@ public class MyApplication extends Application {
     private static boolean isInForeground;
     private static  boolean bound;
     private static MusicPlayer musicPlayer;
-
+    public static ItemFeedDatabase database;
     @Override public void onCreate() {
         super.onCreate();
         if (LeakCanary.isInAnalyzerProcess(this)) {
@@ -28,9 +30,7 @@ public class MyApplication extends Application {
             return;
         }
 
-        if (BuildConfig.DEBUG) {
-            AndroidDevMetrics.initWith(this);
-        }
+        MyApplication.database =  Room.databaseBuilder(this, ItemFeedDatabase.class, "we-need-db").build();
         LeakCanary.install(this);
         // Normal app init code...
     }

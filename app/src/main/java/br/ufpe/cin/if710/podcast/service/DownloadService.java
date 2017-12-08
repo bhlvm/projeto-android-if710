@@ -19,6 +19,7 @@ import java.net.URL;
 
 import br.ufpe.cin.if710.podcast.aplication.MyApplication;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
+import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 
 
 /**
@@ -68,16 +69,12 @@ public class DownloadService extends IntentService  {
                 c.disconnect();
             }
 
+
+            ItemFeed item = MyApplication.database.itemDao().getByDownloadLink(intent.getData().toString());
+
+            item.setFileUri(output.getPath());
             //Salva uri no banco
-            ContentValues content = new ContentValues();
-            content.put(PodcastProviderContract.EPISODE_FILE_URI, output.getPath());
-
-            String[] selectionArgs = {intent.getData().toString()};
-
-            getContentResolver().update(PodcastProviderContract.EPISODE_LIST_URI,
-                    content,
-                    PodcastProviderContract.EPISODE_DOWNLOAD_LINK + "== ?",
-                    selectionArgs);
+            MyApplication.database.itemDao().update(item);
 
             //Envia um broadcast local dependendo do estado da activity
             Intent intentDC = new Intent(DOWNLOAD_COMPLETE);
