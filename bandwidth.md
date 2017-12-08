@@ -77,3 +77,23 @@ Fica disponível ao usuário o download do episódio de Podcast, caso ele tenha 
 A única abordagem proposta para esse cenário é a verificação do tipo de internet disponível (Wi-Fi ou móvel) e desabilitar o download de um episódio caso o usuário esteja usando internet móvel. Nas configurações do aplicativo tornar possível o usuário escolher mesmo não estando com Wi-Fi conectado, apenas móvel, realizar o download.
 
 Dessa forma previne que faça o consumo indesejado da banda, caso o usuário faça o download de um episódio sem ter noção de que está utilizando internet móvel.
+
+#### Verificando o download do Podcast
+Para verificar o tipo de conexão serviço da plataforma ```ConnectivityManager``` para coletar informações a respeito da conexão com a internet, e validando com a configuração mencionada anteriormente, negando o download do episódio caso o usuário esteja em conexão móvel e nas configurações indique que não é permitido.
+
+Abaixo segue o código da verificação:
+```java
+private boolean verifyNetworkType() {
+        Context context = getContext();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean movel = sharedPref.getBoolean("downloadmovel", false); // preferencia compartilhada localizada nas configurações
+
+        ConnectivityManager cm =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo(); // informacao acerca da conexão com a internet
+
+        // libera o download quando a conexão é wifi, ou quando em mobile e permitido nas configurações
+        return   activeNetwork.getTypeName().equalsIgnoreCase("wifi") ||
+                (activeNetwork.getTypeName().equalsIgnoreCase("mobile") && movel);
+    }
+```
