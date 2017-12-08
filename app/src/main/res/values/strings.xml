@@ -13,4 +13,8 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="title_activity_download_podcast">DownloadPodcastActivity</string>
+
+    <string name="downloadmovel">false</string>
+    <string name="pref_download_title">Internet Móvel</string>
+    <string name="pref_download_desc">Habilitar o download de episódios quando conectado a internet móvel.</string>
 </resources>

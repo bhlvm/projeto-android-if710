@@ -11,4 +11,10 @@
         android:title="@string/pref_desc"
         android:defaultValue="@string/feed_link" />
 
+    <CheckBoxPreference
+        android:key="downloadmovel"
+        android:summary="@string/pref_download_desc"
+        android:title="@string/pref_download_title"
+        android:defaultValue="@string/downloadmovel"/>
+
 </PreferenceScreen>

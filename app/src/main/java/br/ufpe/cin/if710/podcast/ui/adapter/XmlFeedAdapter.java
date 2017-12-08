@@ -5,13 +5,19 @@ import java.util.Date;
 import java.util.List;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.aplication.MyApplication;
@@ -135,56 +141,72 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             public void onClick(View view) {
                 System.out.println("P1");
                 Context context = getContext();
-                Intent musicService = new Intent(context, MusicPlayer.class);
-                //holder.btn_Download.setEnabled(false);
-                if(holder.btn_Download.getText().equals("baixar")){
 
-                    Intent downloadService = new Intent(context, DownloadService.class);
+                if(verifyNetworkType()) {
 
-                    downloadService.setData(Uri.parse(item.getDownloadLink()));
+                    Intent musicService = new Intent(context, MusicPlayer.class);
+                    //holder.btn_Download.setEnabled(false);
+                    if (holder.btn_Download.getText().equals("baixar")) {
 
-                    context.startService(downloadService);
-                    System.out.println("Baixar");
-                    holder.btn_Download.setText("baixando");
-                    item.setStauts("baixando");
+                        Intent downloadService = new Intent(context, DownloadService.class);
+
+                        downloadService.setData(Uri.parse(item.getDownloadLink()));
+
+                        context.startService(downloadService);
+                        System.out.println("Baixar");
+                        holder.btn_Download.setText("baixando");
+                        item.setStauts("baixando");
 
 
-                }else if(holder.btn_Download.getText().equals("play")){
+                    } else if (holder.btn_Download.getText().equals("play")) {
 
 
-                    if (MyApplication.isBound()) {
-                        MyApplication.getMusicPlayer().playMusic(item.getFileUri());
+                        if (MyApplication.isBound()) {
+                            MyApplication.getMusicPlayer().playMusic(item.getFileUri());
+                        }
+
+                        System.out.println("escuta1r");
+                        holder.btn_Download.setText("pause");
+                        item.setStauts("pause");
+
+                    } else if (holder.btn_Download.getText().toString().equals("pause")) {
+
+                        if (MyApplication.isBound()) {
+                            MyApplication.getMusicPlayer().pauseMusic();
+                        }
+
+                        holder.btn_Download.setText("unPause");
+                        item.setStauts("unPause");
+                    } else if (holder.btn_Download.getText().equals("unPause")) {
+
+
+                        if (MyApplication.isBound()) {
+                            MyApplication.getMusicPlayer().continueMusic();
+                        }
+
+                        System.out.println("escuta1r");
+                        holder.btn_Download.setText("pause");
+                        item.setStauts("pause");
                     }
-
-                    System.out.println("escuta1r");
-                    holder.btn_Download.setText("pause");
-                    item.setStauts("pause");
-
-                } else  if(holder.btn_Download.getText().toString().equals("pause")){
-
-                    if (MyApplication.isBound()) {
-                        MyApplication.getMusicPlayer().pauseMusic();
-                    }
-
-                    holder.btn_Download.setText("unPause");
-                    item.setStauts("unPause");
-                }else if(holder.btn_Download.getText().equals("unPause")){
-
-
-                    if (MyApplication.isBound()) {
-                        MyApplication.getMusicPlayer().continueMusic();
-                    }
-
-                    System.out.println("escuta1r");
-                    holder.btn_Download.setText("pause");
-                    item.setStauts("pause");
+                } else {
+                    Toast.makeText(context, "Apenas quando Wi-Fi", Toast.LENGTH_SHORT).show();
                 }
-
-
-
             }
         });
 
         return convertView;
+    }
+
+    private boolean verifyNetworkType() {
+        Context context = getContext();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean movel = sharedPref.getBoolean("downloadmovel", false);
+
+        ConnectivityManager cm =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        return   activeNetwork.getTypeName().equalsIgnoreCase("wifi") ||
+                (activeNetwork.getTypeName().equalsIgnoreCase("mobile") && movel);
     }
 }
