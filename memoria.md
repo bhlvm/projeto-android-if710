@@ -41,7 +41,7 @@ A tabela mostra que o aplicativo ficou 93% do tempo na RAM, o que é esperado um
 
 o RecyclerView identifica quais são as views visíveis ao usuário e quando o usuário da scroll  na lista, o componente identifica as views que não estão mais visíveis para o usuário e as reutiliza. Isso faz com que haja um número fixo de objetos criados destinados à listview, diminuindo o consumo de memória.
 
-Como apresentado no código abaixo, o método getView recebe como parâmetro uma posição referente ao item que será mostrado e uma View converView. A convertView é aquela que será reciclada e caso ela não esteja nula será reutilizada. 
+Como apresentado no código abaixo, o método getView do Adapter XmlFeedAdapter recebe como parâmetro uma posição referente ao item que será mostrado e uma View converView. A convertView é aquela que será reciclada e caso ela não esteja nula será reutilizada. 
 
 
     1 public View getView(int position, View convertView, ViewGroup parent) {
