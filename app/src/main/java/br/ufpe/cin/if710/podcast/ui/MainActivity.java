@@ -2,6 +2,11 @@ package br.ufpe.cin.if710.podcast.ui;
 
 import android.Manifest;
 import android.app.Activity;
+import android.arch.lifecycle.LifecycleActivity;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -17,8 +22,10 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,16 +54,15 @@ import br.ufpe.cin.if710.podcast.service.DownloadService;
 import br.ufpe.cin.if710.podcast.service.MusicPlayer;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements LifecycleOwner   {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     private static String FEED_LAST_MODIFIED = "LAST_MODIFIED";
     //TODO teste com outros links de podcast
     PodcastDBHelper db;
-    private ListView itens;
-
-
+    private ListView listViewItens;
+    private XmlFeedAdapter adapter;
     private static String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
@@ -66,9 +72,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         db = PodcastDBHelper.getInstance(this);
-        itens = (ListView) findViewById(R.id.items);
+        listViewItens = (ListView) findViewById(R.id.items);
         checkPermissions(this);
         new startServiceMusicTask().execute();
+
+
+        adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, new ArrayList<ItemFeed>());
+
+        MyApplication.viewModel = ViewModelProviders.of(this).get(ItemFeedListViewModel.class);
+
+        MyApplication.viewModel.getItemFeedList().observe(this, new Observer<List<ItemFeed>>() {
+            @Override
+            public void onChanged(@Nullable List<ItemFeed> itens) {
+                adapter.addItens(itens);
+                listViewItens.setAdapter(adapter);
+            }
+        });
 
     }
 
@@ -76,9 +95,6 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
-
-
         return true;
     }
 
@@ -107,7 +123,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        XmlFeedAdapter adapter = (XmlFeedAdapter) itens.getAdapter();
+        XmlFeedAdapter adapter = (XmlFeedAdapter) listViewItens.getAdapter();
         adapter.clear();  //muda o estado da myaplication
     }
 
@@ -153,7 +169,7 @@ public class MainActivity extends Activity {
 
             Toast.makeText(context, "Download Concluido", Toast.LENGTH_LONG).show();
 
-            new OnDownloadCompleteTask().execute(RSS_FEED);
+
         }
     };
 
@@ -167,37 +183,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class OnDownloadCompleteTask extends AsyncTask<String, Void, List<ItemFeed>>{
-
-        @Override
-        protected  List<ItemFeed> doInBackground(String... strings) {
-            List<ItemFeed> itemList = MyApplication.database.itemDao().getItens();
-
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, itemList);
-            System.out.println("Primeiro plano");
-
-
-            for (ItemFeed i: itemList) {
-                Log.d(null, i.getFileUri());
-            }
-
-            return itemList;
-        }
-
-
-        @Override
-        protected void onPostExecute(List<ItemFeed> feed) {
-
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-
-            //atualizar o list view
-            itens.setAdapter(adapter);
-            itens.setTextFilterEnabled(true);
-            // t = new LoadCursorTask().execute();
-
-        }
-    }
 
     private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
         @Override
@@ -223,7 +208,9 @@ public class MainActivity extends Activity {
                     boolean b = ifModified(params[0]);
                     if(b) {
                         itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-                        persistirDados(itemList);
+                        for (ItemFeed item : itemList) {
+                            MyApplication.viewModel.insertItem(item);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -232,25 +219,8 @@ public class MainActivity extends Activity {
                 }
             }
             //BUSCA OS DADOS PERSISTIDOS
-            itemList = MyApplication.database.itemDao().getItens();
 
-            return itemList;
-        }
-
-
-
-        protected   void persistirDados (List<ItemFeed> itemList){
-
-            List<ItemFeed> itensSalvos = MyApplication.database.itemDao().getItens();
-            //ADICIONA SOMENTE ITENS QUE NÃO FORAM PREVIAMENTE CADASTRADOS
-            for (ItemFeed item : itemList) {
-
-                if(!itensSalvos.contains(item)){
-                    itensSalvos.add(item);
-
-                    MyApplication.database.itemDao().insertItem(item);
-                }
-            }
+            return null;
         }
 
 
@@ -258,12 +228,6 @@ public class MainActivity extends Activity {
         protected void onPostExecute(List<ItemFeed> feed) {
             Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
 
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-
-            //atualizar o list view
-            itens.setAdapter(adapter);
-            itens.setTextFilterEnabled(true);
         }
     }
 

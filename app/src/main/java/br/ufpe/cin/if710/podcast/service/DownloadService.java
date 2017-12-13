@@ -70,11 +70,13 @@ public class DownloadService extends IntentService  {
             }
 
 
-            ItemFeed item = MyApplication.database.itemDao().getByDownloadLink(intent.getData().toString());
+            ItemFeed item = MyApplication.viewModel.getByDownloadLink(intent.getData().toString());
+
 
             item.setFileUri(output.getPath());
             //Salva uri no banco
-            MyApplication.database.itemDao().update(item);
+
+            MyApplication.viewModel.updateItem(item);
 
             //Envia um broadcast local dependendo do estado da activity
             Intent intentDC = new Intent(DOWNLOAD_COMPLETE);

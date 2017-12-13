@@ -35,6 +35,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     public static final String PUBDATE = "pubDate";
     public static final String DESCRIPTION = "description";
     public static final String DOWNLOAD_LINK = "downloadLink";
+    public static List<ItemFeed> itemFeedList;
 
 
     public XmlFeedAdapter(Context context, int resource, List<ItemFeed> objects) {
@@ -42,6 +43,13 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         linkResource = resource;
     }
 
+
+    public void addItens(List<ItemFeed> objects) {
+        this.itemFeedList = objects;
+        Log.d(null, "OLHA O TAMANHO DESSA POHA");
+        Log.d(null, " LIXO " +objects.size());
+        this.notifyDataSetChanged();
+    }
     /**
      * public abstract View getView (int position, View convertView, ViewGroup parent)
      * <p>
@@ -90,8 +98,9 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         }
 
         //final pq é acessado dentro do ONCLICK
-        final ItemFeed item = getItem(position);
-
+        final ItemFeed item = itemFeedList.get(position);
+        Log.d(null,"ESSA POHA NÃO SAI DOddddd CANTO");
+        Log.d(null,item.getTitle());
         holder.item_title.setText(item.getTitle());
 
 
@@ -208,5 +217,10 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
         return   activeNetwork.getTypeName().equalsIgnoreCase("wifi") ||
                 (activeNetwork.getTypeName().equalsIgnoreCase("mobile") && movel);
+    }
+
+    @Override
+    public int getCount(){
+        return itemFeedList.size();
     }
 }

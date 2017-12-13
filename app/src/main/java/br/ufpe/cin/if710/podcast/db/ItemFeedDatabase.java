@@ -20,11 +20,17 @@ import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 @Database(entities = {ItemFeed.class}, version = 1)
 public abstract class ItemFeedDatabase extends RoomDatabase {
 
-
+    private static ItemFeedDatabase INSTANCE;
 
     public abstract ItemFeedDAO itemDao();
 
-
-
+    public static ItemFeedDatabase getDatabase(Context context) {
+        if (INSTANCE == null) {
+            INSTANCE =
+                    Room.databaseBuilder(context.getApplicationContext(), ItemFeedDatabase.class, "podcast.db")
+                            .build();
+        }
+        return INSTANCE;
+    }
 
 }

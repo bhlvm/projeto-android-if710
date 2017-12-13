@@ -9,6 +9,7 @@ import com.squareup.leakcanary.LeakCanary;
 import br.ufpe.cin.if710.podcast.BuildConfig;
 import br.ufpe.cin.if710.podcast.db.ItemFeedDatabase;
 import br.ufpe.cin.if710.podcast.service.MusicPlayer;
+import br.ufpe.cin.if710.podcast.ui.ItemFeedListViewModel;
 
 /**
  * Created by Leonardo on 09/10/2017.
@@ -21,7 +22,8 @@ public class MyApplication extends Application {
     private static boolean isInForeground;
     private static  boolean bound;
     private static MusicPlayer musicPlayer;
-    public static ItemFeedDatabase database;
+    public static ItemFeedListViewModel viewModel;
+
     @Override public void onCreate() {
         super.onCreate();
         if (LeakCanary.isInAnalyzerProcess(this)) {
@@ -29,8 +31,8 @@ public class MyApplication extends Application {
             // You should not init your app in this process.
             return;
         }
-
-        MyApplication.database =  Room.databaseBuilder(this, ItemFeedDatabase.class, "we-need-db").build();
+        
+        //MyApplication.database =  Room.databaseBuilder(this, ItemFeedDatabase.class, "we-need-db").build();
         LeakCanary.install(this);
         // Normal app init code...
     }
